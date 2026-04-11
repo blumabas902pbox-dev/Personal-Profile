@@ -176,5 +176,5 @@ li.dragging { opacity: 0.5; }
     max-width: 200px;
 }
 
-.save { background: #2ecc71; color: white; }
-.reset { background: #95a5a6; color: white; }
+.save { background: #1D5980; color: #F2F2F2; }
+.reset { background: #95a5a6; color: #F2F2F2; }
