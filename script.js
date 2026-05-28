@@ -6,33 +6,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const saveBtn = document.getElementById('save-btn');
     const resetBtn = document.getElementById('reset-btn');
 
-    (function loadData() {
-        const saved = JSON.parse(localStorage.getItem('userProfile'));
-        if (saved) {
-            document.getElementById('user-name').innerText = saved.name;
-            document.getElementById('user-bio').innerText = saved.bio;
-            profilePic.src = saved.pic;
-            
-            const rebuildList = (id, data) => {
-                if (!data) return;
-                const list = document.getElementById(id);
-                list.innerHTML = '';
-                data.forEach(html => {
-                    const li = document.createElement('li');
-                    li.innerHTML = html;
-                    li.draggable = true;
-                    list.appendChild(li);
-                });
-            };
-            rebuildList('skills-list', saved.skills);
-            rebuildList('hobbies-list', saved.hobbies);
-            rebuildList('education-list', saved.education);
-            rebuildList('work-experience-list', saved.work);
-            console.log("Profile restored from local storage");
-        }
-    })();
-
     profilePic.parentElement.addEventListener('click', () => imageUpload.click());
+
     imageUpload.addEventListener('change', (e) => {
         const file = e.target.files[0];
         if (file) {
@@ -86,22 +61,7 @@ document.addEventListener('DOMContentLoaded', () => {
         input.addEventListener('keypress', (e) => {
             if (e.key === 'Enter' && input.value.trim() !== "") {
                 const li = document.createElement('li');
-                const val = input.value.trim();
-                
-                if (val.includes(':')) {
-                    const parts = val.split(':');
-                    const label = parts[0].trim();
-                    const rest = parts.slice(1).join(':').trim();
-                    li.innerHTML = `<strong>${label}:</strong> <span>${rest}</span>`;
-                } else {
-                    let defaultLabel = "Detail";
-                    if (sectionId === 'skills-section') defaultLabel = "Skill";
-                    if (sectionId === 'hobbies-section') defaultLabel = "Hobby";
-                    if (sectionId === 'education-section') defaultLabel = "Info";
-                    if (sectionId === 'work-experience-section') defaultLabel = "Job";
-                    li.innerHTML = `<strong>${defaultLabel}:</strong> <span>${val}</span>`;
-                }
-                
+                li.innerHTML = `<span>${input.value}</span>`;
                 li.draggable = true;
                 list.appendChild(li);
                 console.log(`Item added to ${sectionId}: ${input.value}`);
@@ -140,6 +100,33 @@ document.addEventListener('DOMContentLoaded', () => {
 
         list.querySelectorAll('li').forEach(attachItemEvents);
     }
+
+    // Load saved configurations first so that setupListLogic targets elements that have already been populated.
+    (function loadData() {
+        const saved = JSON.parse(localStorage.getItem('userProfile'));
+        if (saved) {
+            document.getElementById('user-name').innerText = saved.name;
+            document.getElementById('user-bio').innerText = saved.bio;
+            profilePic.src = saved.pic;
+            
+            const rebuildList = (id, data) => {
+                const list = document.getElementById(id);
+                if (!list || !data) return;
+                list.innerHTML = '';
+                data.forEach(htmlContent => {
+                    const li = document.createElement('li');
+                    li.innerHTML = htmlContent;
+                    li.draggable = true;
+                    list.appendChild(li);
+                });
+            };
+            rebuildList('skills-list', saved.skills);
+            rebuildList('hobbies-list', saved.hobbies);
+            rebuildList('education-list', saved.education);
+            rebuildList('work-experience-list', saved.work);
+            console.log("Profile restored from local storage");
+        }
+    })();
 
     setupListLogic('skills-section');
     setupListLogic('hobbies-section');
@@ -183,6 +170,10 @@ function applyAestheticUpdate() {
       font-size: 0.9rem !important;
     }
 
+    #skills-input, #hobby-input {
+      display: none;
+    }
+
     .controls {
       display: flex;
       gap: 10px;
@@ -217,7 +208,6 @@ applyAestheticUpdate();
 
 document.addEventListener('DOMContentLoaded', () => {
     const sections = document.querySelectorAll('.list-section');
-
     sections.forEach(section => {
         const editBtn = section.querySelector('[id*="edit-"]');
         const list = section.querySelector('ul');
@@ -257,4 +247,4 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         }
     });
-});                   
+});
