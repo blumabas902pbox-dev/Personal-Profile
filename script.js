@@ -6,8 +6,33 @@ document.addEventListener('DOMContentLoaded', () => {
     const saveBtn = document.getElementById('save-btn');
     const resetBtn = document.getElementById('reset-btn');
 
-    profilePic.parentElement.addEventListener('click', () => imageUpload.click());
+    (function loadData() {
+        const saved = JSON.parse(localStorage.getItem('userProfile'));
+        if (saved) {
+            document.getElementById('user-name').innerText = saved.name;
+            document.getElementById('user-bio').innerText = saved.bio;
+            profilePic.src = saved.pic;
+            
+            const rebuildList = (id, data) => {
+                if (!data) return;
+                const list = document.getElementById(id);
+                list.innerHTML = '';
+                data.forEach(html => {
+                    const li = document.createElement('li');
+                    li.innerHTML = html;
+                    li.draggable = true;
+                    list.appendChild(li);
+                });
+            };
+            rebuildList('skills-list', saved.skills);
+            rebuildList('hobbies-list', saved.hobbies);
+            rebuildList('education-list', saved.education);
+            rebuildList('work-experience-list', saved.work);
+            console.log("Profile restored from local storage");
+        }
+    })();
 
+    profilePic.parentElement.addEventListener('click', () => imageUpload.click());
     imageUpload.addEventListener('change', (e) => {
         const file = e.target.files[0];
         if (file) {
@@ -61,7 +86,22 @@ document.addEventListener('DOMContentLoaded', () => {
         input.addEventListener('keypress', (e) => {
             if (e.key === 'Enter' && input.value.trim() !== "") {
                 const li = document.createElement('li');
-                li.textContent = input.value;
+                const val = input.value.trim();
+                
+                if (val.includes(':')) {
+                    const parts = val.split(':');
+                    const label = parts[0].trim();
+                    const rest = parts.slice(1).join(':').trim();
+                    li.innerHTML = `<strong>${label}:</strong> <span>${rest}</span>`;
+                } else {
+                    let defaultLabel = "Detail";
+                    if (sectionId === 'skills-section') defaultLabel = "Skill";
+                    if (sectionId === 'hobbies-section') defaultLabel = "Hobby";
+                    if (sectionId === 'education-section') defaultLabel = "Info";
+                    if (sectionId === 'work-experience-section') defaultLabel = "Job";
+                    li.innerHTML = `<strong>${defaultLabel}:</strong> <span>${val}</span>`;
+                }
+                
                 li.draggable = true;
                 list.appendChild(li);
                 console.log(`Item added to ${sectionId}: ${input.value}`);
@@ -111,8 +151,10 @@ document.addEventListener('DOMContentLoaded', () => {
             name: document.getElementById('user-name').innerText,
             bio: document.getElementById('user-bio').innerText,
             pic: profilePic.src,
-            skills: [...document.querySelectorAll('#skills-list li')].map(li => li.innerText),
-            hobbies: [...document.querySelectorAll('#hobbies-list li')].map(li => li.innerText)
+            skills: [...document.querySelectorAll('#skills-list li')].map(li => li.innerHTML),
+            hobbies: [...document.querySelectorAll('#hobbies-list li')].map(li => li.innerHTML),
+            education: [...document.querySelectorAll('#education-list li')].map(li => li.innerHTML),
+            work: [...document.querySelectorAll('#work-experience-list li')].map(li => li.innerHTML)
         };
         localStorage.setItem('userProfile', JSON.stringify(profileData));
         console.log("Changes saved to local storage");
@@ -126,29 +168,6 @@ document.addEventListener('DOMContentLoaded', () => {
             location.reload();
         }
     });
-
-    (function loadData() {
-        const saved = JSON.parse(localStorage.getItem('userProfile'));
-        if (saved) {
-            document.getElementById('user-name').innerText = saved.name;
-            document.getElementById('user-bio').innerText = saved.bio;
-            profilePic.src = saved.pic;
-            
-            const rebuildList = (id, data) => {
-                const list = document.getElementById(id);
-                list.innerHTML = '';
-                data.forEach(text => {
-                    const li = document.createElement('li');
-                    li.textContent = text;
-                    li.draggable = true;
-                    list.appendChild(li);
-                });
-            };
-            rebuildList('skills-list', saved.skills);
-            rebuildList('hobbies-list', saved.hobbies);
-            console.log("Profile restored from local storage");
-        }
-    })();
 });
 
 function applyAestheticUpdate() {
@@ -162,10 +181,6 @@ function applyAestheticUpdate() {
       width: calc(100% - 22px) !important;
       margin-bottom: 10px !important;
       font-size: 0.9rem !important;
-    }
-
-    #hobby-input {
-      display: none;
     }
 
     .controls {
@@ -242,4 +257,4 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         }
     });
-});
+});                   
